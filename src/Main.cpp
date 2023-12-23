@@ -7,22 +7,35 @@
 #include "lib/nlohmann/json.hpp"
 
 using json = nlohmann::json;
+constexpr static char integer_start_prefix = 'i';
+constexpr static char integer_end_prefix = 'e';
 
 json decode_bencoded_value(const std::string& encoded_value) {
     if (std::isdigit(encoded_value[0])) {
         // Example: "5:hello" -> "hello"
         size_t colon_index = encoded_value.find(':');
-        if (colon_index != std::string::npos) {
-            std::string number_string = encoded_value.substr(0, colon_index);
-            int64_t number = std::atoll(number_string.c_str());
-            std::string str = encoded_value.substr(colon_index + 1, number);
-            return json(str);
-        } else {
+        if (colon_index == std::string::npos) {
             throw std::runtime_error("Invalid encoded value: " + encoded_value);
         }
-    } else {
-        throw std::runtime_error("Unhandled encoded value: " + encoded_value);
+
+        std::string number_string = encoded_value.substr(0, colon_index);
+        int64_t number = std::atoll(number_string.c_str());
+        std::string str = encoded_value.substr(colon_index + 1, number);
+        return json(str);
     }
+
+    if (encoded_value[0] == integer_start_prefix) {
+        // Example: "i52e" -> "52"
+        size_t end_index = encoded_value.find(integer_end_prefix);
+        if (end_index == std::string::npos) {
+            throw std::runtime_error("Invalid encoded value: " + encoded_value);
+        }
+
+        auto integer_value = encoded_value.substr(1, end_index - 1);
+        return json(std::atoll(integer_value.c_str()));
+    }
+
+    throw std::runtime_error("Unhandled encoded value: " + encoded_value);
 }
 
 int main(int argc, char* argv[]) {
