@@ -15794,7 +15794,7 @@ class binary_writer
             {
                 if (use_bjdata && j.m_data.m_value.object->size() == 3 && j.m_data.m_value.object->find("_ArrayType_") != j.m_data.m_value.object->end() && j.m_data.m_value.object->find("_ArraySize_") != j.m_data.m_value.object->end() && j.m_data.m_value.object->find("_ArrayData_") != j.m_data.m_value.object->end())
                 {
-                    if (!write_bjdata_ndarray(*j.m_data.m_value.object, use_count, use_type))  // decode bjdata ndarray in the JData format (https://github.com/NeuroJSON/jdata)
+                    if (!write_bjdata_ndarray(*j.m_data.m_value.object, use_count, use_type))  // bencode bjdata ndarray in the JData format (https://github.com/NeuroJSON/jdata)
                     {
                         break;
                     }
@@ -18278,7 +18278,7 @@ class serializer
 
             switch (decode(state, codepoint, byte))
             {
-                case UTF8_ACCEPT:  // decode found a new code point
+                case UTF8_ACCEPT:  // bencode found a new code point
                 {
                     switch (codepoint)
                     {
@@ -18378,7 +18378,7 @@ class serializer
                     break;
                 }
 
-                case UTF8_REJECT:  // decode found invalid UTF-8 byte
+                case UTF8_REJECT:  // bencode found invalid UTF-8 byte
                 {
                     switch (error_handler)
                     {
@@ -18447,7 +18447,7 @@ class serializer
                     break;
                 }
 
-                default:  // decode found yet incomplete multi-byte code point
+                default:  // bencode found yet incomplete multi-byte code point
                 {
                     if (!ensure_ascii)
                     {
@@ -18763,7 +18763,7 @@ class serializer
 
     @param[in,out] state  the state of the decoding
     @param[in,out] codep  codepoint (valid only if resulting state is UTF8_ACCEPT)
-    @param[in] byte       next byte to decode
+    @param[in] byte       next byte to bencode
     @return               new state
 
     @note The function has been edited: a std::array is used.
