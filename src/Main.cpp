@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 
     std::string command = argv[1];
 
-    if (command == "bencode")
+    if (command == "decode")
     {
         if (argc < 3) {
             std::cerr << "Usage: " << argv[0] << " bencode <encoded_value>" << std::endl;
