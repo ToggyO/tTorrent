@@ -3,15 +3,18 @@
 
 #include "lib/bencode/bencode.h"
 
-int main(int argc, char* argv[]) {
-    if (argc < 2) {
+int main(int argc, char* argv[])
+{
+    if (argc < 2)
+    {
         std::cerr << "Usage: " << argv[0] << " bencode <encoded_value>" << std::endl;
         return 1;
     }
 
     std::string command = argv[1];
 
-    if (command == "bencode") {
+    if (command == "bencode")
+    {
         if (argc < 3) {
             std::cerr << "Usage: " << argv[0] << " bencode <encoded_value>" << std::endl;
             return 1;
@@ -21,7 +24,9 @@ int main(int argc, char* argv[]) {
          std::string encoded_value = argv[2];
          json decoded_value = bencode::decode(encoded_value);
          std::cout << decoded_value.dump() << std::endl;
-    } else {
+    }
+    else
+    {
         std::cerr << "unknown command: " << command << std::endl;
         return 1;
     }
