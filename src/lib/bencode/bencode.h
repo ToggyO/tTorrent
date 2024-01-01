@@ -84,7 +84,7 @@ json __M_decode_string(const std::string& encoded_value, size_t& position)
         throw std::runtime_error("Invalid encoded string: " + encoded_value);
     }
 
-    std::string number_string = encoded_value.substr(position, colon_index - 1);
+    std::string number_string = encoded_value.substr(position, colon_index);
     int64_t number = std::atoll(number_string.c_str());
     std::string str = encoded_value.substr(colon_index + 1, number);
 
