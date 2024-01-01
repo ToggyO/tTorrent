@@ -12,6 +12,7 @@ using json = nlohmann::json;
 constexpr static char end_postfix = 'e';
 constexpr static char integer_start_postfix = 'i';
 constexpr static char list_start_postfix = 'l';
+constexpr static char dictionary_start_postfix = 'd';
 
 /** @brief Forward declaration */
 json __M_decode_bencoded_value(const std::string&, size_t&);
@@ -21,6 +22,8 @@ json __M_decode_integer(const std::string&, size_t&);
 json __M_decode_string(const std::string&, size_t&);
 
 json __M_decode_list(const std::string&, size_t&);
+
+json __M_decode_dictionary(const std::string&, size_t&);
 
 namespace bencode
 {
@@ -54,6 +57,11 @@ json __M_decode_bencoded_value(const std::string& encoded_value, size_t& positio
     if (encoded_value[position] == list_start_postfix)
     {
         return __M_decode_list(encoded_value, position);
+    }
+
+    if (encoded_value[position] == dictionary_start_postfix)
+    {
+        return __M_decode_dictionary(encoded_value, position);
     }
 
     throw std::runtime_error("Unhandled encoded value: " + encoded_value);
@@ -105,4 +113,21 @@ json __M_decode_list(const std::string& encoded_value, size_t& position)
 
     ++position; // Skip 'e'
     return json_array;
+}
+
+json __M_decode_dictionary(const std::string& encoded_value, size_t& position)
+{
+    // Example: "`d3:foo3:bar5:helloi52ee" -> {"foo":"bar","hello":52}
+    if (encoded_value[position] == dictionary_start_postfix) { ++position; }
+
+    auto json_map = nlohmann::ordered_map<std::string, json>{};
+    while (encoded_value[position] != end_postfix)
+    {
+        json key = __M_decode_string(encoded_value, position);
+        json value = __M_decode_bencoded_value(encoded_value, position);
+        json_map.emplace(std::move(key), std::move(value));
+    }
+
+    position++;
+    return json_map;
 }

@@ -4,7 +4,6 @@ project(bittorrent-starter-cpp)
 
 set(CMAKE_CXX_STANDARD 20) # Enable the C++20 standard
 
-set(SOURCE_FILES src/Main.cpp
-        src/example.h)
+set(SOURCE_FILES src/Main.cpp)
 
 add_executable(bittorrent ${SOURCE_FILES})
