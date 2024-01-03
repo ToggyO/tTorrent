@@ -9,10 +9,10 @@
 using json = nlohmann::json;
 
 /** @brief Constants */
-constexpr static char end_postfix = 'e';
-constexpr static char integer_start_postfix = 'i';
-constexpr static char list_start_postfix = 'l';
-constexpr static char dictionary_start_postfix = 'd';
+constexpr static char k_end_postfix = 'e';
+constexpr static char k_integer_start_postfix = 'i';
+constexpr static char k_list_start_postfix = 'l';
+constexpr static char k_dictionary_start_postfix = 'd';
 
 /** @brief Forward declaration */
 json __M_decode_bencoded_value(const std::string&, size_t&);
@@ -49,17 +49,17 @@ json __M_decode_bencoded_value(const std::string& encoded_value, size_t& positio
         return __M_decode_string(encoded_value, position);
     }
 
-    if (encoded_value[position] == integer_start_postfix)
+    if (encoded_value[position] == k_integer_start_postfix)
     {
         return __M_decode_integer(encoded_value, position);
     }
 
-    if (encoded_value[position] == list_start_postfix)
+    if (encoded_value[position] == k_list_start_postfix)
     {
         return __M_decode_list(encoded_value, position);
     }
 
-    if (encoded_value[position] == dictionary_start_postfix)
+    if (encoded_value[position] == k_dictionary_start_postfix)
     {
         return __M_decode_dictionary(encoded_value, position);
     }
@@ -70,13 +70,13 @@ json __M_decode_bencoded_value(const std::string& encoded_value, size_t& positio
 json __M_decode_integer(const std::string& encoded_value, size_t& position)
 {
     // Example: "i52e" -> "52"
-    size_t end_index = encoded_value.find( end_postfix, position);
+    size_t end_index = encoded_value.find( k_end_postfix, position);
     if (end_index == std::string::npos)
     {
         throw std::runtime_error("Invalid encoded integer: " + encoded_value);
     }
 
-    if (encoded_value[position] == integer_start_postfix) { ++position; }
+    if (encoded_value[position] == k_integer_start_postfix) { ++position; }
 
     auto integer_value = encoded_value.substr(position, end_index - 1);
     position = end_index + 1;
@@ -103,10 +103,10 @@ json __M_decode_string(const std::string& encoded_value, size_t& position)
 json __M_decode_list(const std::string& encoded_value, size_t& position)
 {
     // Example: "l3:geti52ee" -> ["get",52]
-    if (encoded_value[position] == list_start_postfix) { ++position; }
+    if (encoded_value[position] == k_list_start_postfix) { ++position; }
 
     auto json_array = json::array();
-    while (encoded_value[position] != end_postfix)
+    while (encoded_value[position] != k_end_postfix)
     {
         json_array.push_back(__M_decode_bencoded_value(encoded_value, position));
     }
@@ -118,10 +118,10 @@ json __M_decode_list(const std::string& encoded_value, size_t& position)
 json __M_decode_dictionary(const std::string& encoded_value, size_t& position)
 {
     // Example: "`d3:foo3:bar5:helloi52ee" -> {"foo":"bar","hello":52}
-    if (encoded_value[position] == dictionary_start_postfix) { ++position; }
+    if (encoded_value[position] == k_dictionary_start_postfix) { ++position; }
 
     auto json_map = nlohmann::ordered_map<std::string, json>{};
-    while (encoded_value[position] != end_postfix)
+    while (encoded_value[position] != k_end_postfix)
     {
         json key = __M_decode_string(encoded_value, position);
         json value = __M_decode_bencoded_value(encoded_value, position);
