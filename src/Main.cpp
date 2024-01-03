@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
         auto torrent_meta = torrent::convert_to_torrent_meta(decoded_value);
 
         // TODO: refactor output
-        std::cout << "Tracker: " << torrent_meta.announce << std::endl
+        std::cout << "Tracker URL: " << torrent_meta.announce << std::endl
             << "Length: " << torrent_meta.length << std::endl;
 
         return 0;
