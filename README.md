@@ -33,3 +33,6 @@ Note: This section is for stages 2 and beyond.
    `src/Main.cpp`.
 1. Commit your changes and run `git push origin master` to submit your solution
    to CodeCrafters. Test output will be streamed to your terminal.
+
+`decode` - `decode l3:keki52ee`;
+`info` - `.info ./sample.torrent` or `./build/bittorrent info ../sample.torrent`.
