@@ -2,6 +2,8 @@
 
 #include "../src/lib/bencode/encode.h"
 
+using namespace bencode;
+
 TEST(test_bencode_encode, common) {
     std::vector<BEncodedValue> list = { BEncodedValue("kek"), BEncodedValue(69) };
 

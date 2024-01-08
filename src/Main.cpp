@@ -7,10 +7,11 @@
 #include "lib/torrent/meta.h"
 #include "lib/torrent/utils.h"
 
-void process_decode(const std::string&);
+int process_decode(const std::string&);
 
 int process_info(const std::string&);
 
+// TODO: постараться разбить на h/cpp. Выделить либы
 int main(int argc, char* argv[])
 {
     if (argc < 2)
@@ -32,9 +33,7 @@ int main(int argc, char* argv[])
         }
 
         std::string encoded_value = argv[2];
-        process_decode(encoded_value);
-
-        return 0;
+        return process_decode(encoded_value);
     }
 
     if (command == "info")
@@ -61,10 +60,11 @@ int main(int argc, char* argv[])
     return 1;
 }
 
-void process_decode(const std::string& encoded_value)
+int process_decode(const std::string& encoded_value)
 {
     auto decoded_value = bencode::decode(encoded_value);
     std::cout << ((json)decoded_value).dump() << std::endl;
+    return 0;
 }
 
 int process_info(const std::string& path)
@@ -77,7 +77,7 @@ int process_info(const std::string& path)
 
     auto decoded_value = bencode::decode(encoded_value);
     auto dictionary_ptr = reinterpret_cast<BEncodedDictionary*>(&decoded_value);
-    auto torrent_meta = torrent::convert_to_torrent_meta(*dictionary_ptr);
+    auto torrent_meta = torrent::Torrent::from_bencode(*dictionary_ptr);
 
     // TODO: refactor output
     std::cout << "Tracker URL: " << torrent_meta.announce << std::endl
@@ -87,6 +87,13 @@ int process_info(const std::string& path)
     {
         auto encoded_info = bencode::encode(search->second);
         std::cout << "Info Hash: " << compute_hash(encoded_info) << std::endl;
+    }
+
+    std::cout << "Piece Length: " << torrent_meta.piece_length << std::endl;
+    std::cout << "Piece Hashes:" << std::endl;
+    for (const auto& hash : get_peaces_hashes(torrent_meta.pieces))
+    {
+        std::cout << hash << std::endl;
     }
 
     return 0;

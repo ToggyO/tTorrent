@@ -31,3 +31,21 @@ std::string compute_hash(const std::string& input)
     snprintf(tmp, 45, "%08x%08x%08x%08x%08x", digest[0], digest[1], digest[2], digest[3], digest[4]);
     return tmp;
 }
+
+std::vector<std::string> get_peaces_hashes(const std::string& pieces_raw)
+{
+    std::vector<std::string> hashes;
+
+    for(size_t i = 0; i < pieces_raw.size(); i += 20) {
+        std::string piece_hash = pieces_raw.substr(i, 20);
+        std::stringstream ss;
+        // Convert each byte in the slice to hexadecimal format
+        for (unsigned char byte : piece_hash){
+            ss << std::hex << std::setw(2) << std::setfill('0') << (int)byte;
+        }
+
+        hashes.push_back(ss.str());
+    }
+
+    return hashes;
+}

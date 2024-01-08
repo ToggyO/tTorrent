@@ -4,21 +4,28 @@
 #include <variant>
 #include <vector>
 
-struct BEncodedValue;
-using BEncodedList = std::vector<BEncodedValue>;
-using BEncodedDictionary = std::map<std::string, BEncodedValue>; // unordered_map cannot store incomplete type - BEncodedValue
+#include "../nlohmann/json.hpp"
 
-struct BEncodedValue : std::variant<long, std::string, BEncodedList, BEncodedDictionary>
+namespace bencode
 {
-    using variant::variant;
+    using json = nlohmann::json;
 
-    BEncodedValue(const BEncodedValue&) = default;
-    BEncodedValue(BEncodedValue&&) noexcept = default;
+    struct BEncodedValue;
+    using Integer = long long;
+    using BEncodedList = std::vector<BEncodedValue>;
+    using BEncodedDictionary = std::map<std::string, BEncodedValue>; // unordered_map cannot store incomplete type - BEncodedValue
 
-    BEncodedValue& operator=(const BEncodedValue&) = default;
-    BEncodedValue& operator=(BEncodedValue&&) noexcept = default;
+    struct BEncodedValue : std::variant<std::string, Integer, BEncodedList, BEncodedDictionary>
+    {
+        using variant::variant;
 
-    // TODO: remove
+        BEncodedValue(const BEncodedValue&) = default;
+        BEncodedValue(BEncodedValue&&) noexcept = default;
+
+        BEncodedValue& operator=(const BEncodedValue&) = default;
+        BEncodedValue& operator=(BEncodedValue&&) noexcept = default;
+
+        // TODO: remove
 //    BEncodedValue(const BEncodedValue& other)
 //            : variant(other)
 //    {
@@ -31,33 +38,34 @@ struct BEncodedValue : std::variant<long, std::string, BEncodedList, BEncodedDic
 //        std::cout << "BEncodedValue move ctor" << std::endl;
 //    }
 
-    bool try_get_string(std::string& string) const { return try_get_value<std::string>(string); }
+        bool try_get_string(std::string& string) const { return try_get_value<std::string>(string); }
 
-    bool try_get_int(long& integer) const { return try_get_value<long>(integer); }
+        bool try_get_int(Integer& integer) const { return try_get_value<Integer>(integer); }
 
-    bool try_get_list(BEncodedList& list) const { return try_get_value<BEncodedList>(list); }
+        bool try_get_list(BEncodedList& list) const { return try_get_value<BEncodedList>(list); }
 
-    bool try_get_dictionary(BEncodedDictionary& string) const { return try_get_value<BEncodedDictionary>(string); }
+        bool try_get_dictionary(BEncodedDictionary& string) const { return try_get_value<BEncodedDictionary>(string); }
 
-private:
-    template <typename T>
-    bool try_get_value(T& result) const
-    {
-        try
+    private:
+        template <typename T>
+        bool try_get_value(T& result) const
         {
-            result = std::get<T>(*this);
-            return true;
+            try
+            {
+                result = std::get<T>(*this);
+                return true;
+            }
+            catch (const std::bad_variant_access& ex)
+            {
+                return false;
+            }
         }
-        catch (const std::bad_variant_access& ex)
-        {
-            return false;
-        }
-    }
-};
+    };
 
 /** @brief Constants */
-constexpr static char __k_colon = ':';
-constexpr static char __k_end_postfix = 'e';
-constexpr static char __k_integer_start_postfix = 'i';
-constexpr static char __k_list_start_postfix = 'l';
-constexpr static char __k_dictionary_start_postfix = 'd';
+    constexpr static char __k_colon = ':';
+    constexpr static char __k_end_postfix = 'e';
+    constexpr static char __k_integer_start_postfix = 'i';
+    constexpr static char __k_list_start_postfix = 'l';
+    constexpr static char __k_dictionary_start_postfix = 'd';
+}

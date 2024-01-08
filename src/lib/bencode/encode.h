@@ -6,6 +6,8 @@
 
 #include "bencoded_value.h"
 
+using namespace bencode;
+
 /** @brief Forward declaration */
 std::string __M_encode(const BEncodedValue&);
 

@@ -2,6 +2,8 @@
 
 #include "../src/lib/bencode/decode.h"
 
+using namespace bencode;
+
 TEST(test_bencode_decode, string_value) {
     auto encoded_value = "10:created by";
 
@@ -17,7 +19,7 @@ TEST(test_bencode_decode, integer_value) {
 
     auto value = bencode::decode(encoded_value);
 
-    long result;
+    Integer result;
     ASSERT_TRUE(value.try_get_int(result));
     ASSERT_EQ(952, result);
 }
@@ -34,7 +36,7 @@ TEST(test_bencode_decode, list_value) {
     ASSERT_TRUE(result[0].try_get_string(str));
     ASSERT_EQ(str, "kek");
 
-    long integer;
+    Integer integer;
     ASSERT_TRUE(result[1].try_get_int(integer));
     ASSERT_EQ(integer, 52);
 }
@@ -55,7 +57,7 @@ TEST(test_bencode_decode, dictionary_value) {
 
     search = result.find("hello");
     ASSERT_TRUE(search != result.end());
-    long val2;
+    Integer val2;
     ASSERT_TRUE(search->second.try_get_int(val2));
     ASSERT_EQ(val2, 52);
 }
