@@ -9,7 +9,7 @@
 /** @brief Forward declaration */
 BEncodedValue __M_decode_bencoded_value(const std::string&, size_t&);
 
-size_t __M_decode_integer(const std::string&, size_t&);
+long __M_decode_integer(const std::string&, size_t&);
 
 std::string __M_decode_string(const std::string&, size_t&);
 
@@ -59,7 +59,7 @@ BEncodedValue __M_decode_bencoded_value(const std::string& encoded_value, size_t
     throw std::runtime_error("Unhandled encoded value: " + encoded_value);
 }
 
-size_t __M_decode_integer(const std::string& encoded_value, size_t& position)
+long __M_decode_integer(const std::string& encoded_value, size_t& position)
 {
     // Example: "i52e" -> "52"
     size_t end_index = encoded_value.find( __k_end_postfix, position);

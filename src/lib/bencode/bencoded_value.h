@@ -8,7 +8,7 @@ struct BEncodedValue;
 using BEncodedList = std::vector<BEncodedValue>;
 using BEncodedDictionary = std::map<std::string, BEncodedValue>; // unordered_map cannot store incomplete type - BEncodedValue
 
-struct BEncodedValue : std::variant<size_t, std::string, BEncodedList, BEncodedDictionary>
+struct BEncodedValue : std::variant<long, std::string, BEncodedList, BEncodedDictionary>
 {
     using variant::variant;
 
@@ -33,7 +33,7 @@ struct BEncodedValue : std::variant<size_t, std::string, BEncodedList, BEncodedD
 
     bool try_get_string(std::string& string) const { return try_get_value<std::string>(string); }
 
-    bool try_get_int(size_t& integer) const { return try_get_value<size_t>(integer); }
+    bool try_get_int(long& integer) const { return try_get_value<long>(integer); }
 
     bool try_get_list(BEncodedList& list) const { return try_get_value<BEncodedList>(list); }
 

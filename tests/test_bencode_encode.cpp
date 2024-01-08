@@ -3,17 +3,17 @@
 #include "../src/lib/bencode/encode.h"
 
 TEST(test_bencode_encode, common) {
-    std::vector<BEncodedValue> list = { BEncodedValue("kek"), BEncodedValue((size_t)69) };
+    std::vector<BEncodedValue> list = { BEncodedValue("kek"), BEncodedValue(69) };
 
     BEncodedDictionary bEncodedDictionary;
     bEncodedDictionary = {
-        { "length", BEncodedValue((size_t)234523) }
+        { "length", BEncodedValue(234523) }
     };
 
     BEncodedDictionary data;
     data = {
         { "foo", BEncodedValue("bar") },
-        { "hello", BEncodedValue((size_t)52) },
+        { "hello", BEncodedValue(52) },
         { "list", list },
         { "info", bEncodedDictionary }
     };

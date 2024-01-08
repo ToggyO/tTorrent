@@ -17,7 +17,7 @@ TEST(test_bencode_decode, integer_value) {
 
     auto value = bencode::decode(encoded_value);
 
-    size_t result;
+    long result;
     ASSERT_TRUE(value.try_get_int(result));
     ASSERT_EQ(952, result);
 }
@@ -34,7 +34,7 @@ TEST(test_bencode_decode, list_value) {
     ASSERT_TRUE(result[0].try_get_string(str));
     ASSERT_EQ(str, "kek");
 
-    size_t integer;
+    long integer;
     ASSERT_TRUE(result[1].try_get_int(integer));
     ASSERT_EQ(integer, 52);
 }
@@ -55,7 +55,7 @@ TEST(test_bencode_decode, dictionary_value) {
 
     search = result.find("hello");
     ASSERT_TRUE(search != result.end());
-    size_t val2;
+    long val2;
     ASSERT_TRUE(search->second.try_get_int(val2));
     ASSERT_EQ(val2, 52);
 }

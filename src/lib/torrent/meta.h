@@ -15,7 +15,7 @@ namespace torrent
     struct Torrent
     {
         std::string announce;
-        size_t length;
+        long length;
     };
 
     Torrent convert_to_torrent_meta(const BEncodedDictionary&);
