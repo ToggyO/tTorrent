@@ -10,7 +10,7 @@ void to_json(json& j, const BEncodedValue& value)
     std::visit([&](auto&& arg)
     {
         using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, size_t> || std::is_same_v<T, std::string>)
+        if constexpr (std::is_same_v<T, long> || std::is_same_v<T, std::string>)
         {
             j = arg;
             return;
