@@ -16,8 +16,8 @@ int read_torrent_file_content(const std::string& path, std::string& content)
     }
 
     content = std::string(
-            (std::istreambuf_iterator<char>(file)),
-            (std::istreambuf_iterator<char>()));
+        (std::istreambuf_iterator<char>(file)),
+        (std::istreambuf_iterator<char>()));
     return 0;
 }
 

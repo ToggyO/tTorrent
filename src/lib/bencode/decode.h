@@ -24,7 +24,7 @@ namespace bencode
     /**
      * @brief Decode string in Bencode format @link https://en.wikipedia.org/wiki/Bencode
      *
-     * @param encoded_value string in Bencode foramt
+     * @param encoded_value string in Bencode format
      *
      * @return result json
      */

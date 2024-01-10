@@ -62,7 +62,7 @@ namespace bencode
         }
     };
 
-/** @brief Constants */
+    /** @brief Constants */
     constexpr static char __k_colon = ':';
     constexpr static char __k_end_postfix = 'e';
     constexpr static char __k_integer_start_postfix = 'i';

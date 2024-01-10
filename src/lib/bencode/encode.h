@@ -15,7 +15,13 @@ struct __encoder;
 
 namespace bencode
 {
-    // TODO: add descr
+    /**
+     * @brief Encode string in Bencode format @link https://en.wikipedia.org/wiki/Bencode
+     *
+     * @param value instance of BencodedValue
+     *
+     * @return
+     */
     std::string encode(const BEncodedValue& value) { return __M_encode(value); }
 }
 
