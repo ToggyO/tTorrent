@@ -32,6 +32,14 @@ std::string compute_hash(const std::string& input)
     return tmp;
 }
 
+std::string encode_info_hash(const std::string& hash) {
+    std::string encoded;
+    for(auto i = 0; i < hash.size(); i += 2) {
+        encoded += '%' + hash.substr(i, 2);
+    }
+    return encoded;
+}
+
 std::vector<std::string> get_peaces_hashes(const std::string& pieces_raw)
 {
     std::vector<std::string> hashes;
