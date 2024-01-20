@@ -30,23 +30,6 @@ namespace torrent
         size_t downloaded;
         size_t left;
         ushort compact;
-// TODO: remove?
-//        TorrentDownloadInfo(
-//                std::string&& info_hash,
-//                std::string&& peer_id,
-//                size_t port,
-//                size_t uploaded,
-//                size_t downloaded,
-//                size_t left,
-//                ushort compact)
-//            : info_hash(std::move(info_hash)),
-//            peer_id(std::move(peer_id)),
-//            port(port),
-//            uploaded(uploaded),
-//            downloaded(downloaded),
-//            left(left),
-//            compact(compact)
-//        {}
     };
 
     std::string get_peers_info(std::string&& announce, TorrentDownloadInfo&& info)
@@ -66,7 +49,6 @@ namespace torrent
         http::Request request{k};
 
         auto response = request.send("GET");
-        std::cout << std::string{response.body.begin(), response.body.end()} << '\n'; // TODO: remove
         return std::string{response.body.begin(), response.body.end()};
     }
 
@@ -85,12 +67,21 @@ namespace torrent
         std::string peers;
         search->second.try_get_string(peers);
 
+        std::stringstream ss;
         for (int i = 0; i < peers.size(); i += __k_peer_ip_byte_size)
         {
-            std::stringstream ss;
+            ss.clear();
+            ss.str("");
 
-//            ss << (bencoded_peers >> 40);
-            // TODO: !!! bitwise !!!
+            ushort port = ((unsigned short)peers[i + 4] << 8) | (unsigned char)peers[i + 5];
+            ss
+                << std::to_string((unsigned char)peers[i]) << __k_point_char
+                << std::to_string((unsigned char)peers[i + 1]) << __k_point_char
+                << std::to_string((unsigned char)peers[i + 2]) << __k_point_char
+                << std::to_string((unsigned char)peers[i + 3])
+                << __k_colon << port;
+
+            result.push_back(ss.str());
         }
 
         return true;

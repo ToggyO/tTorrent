@@ -9,15 +9,15 @@
 using namespace bencode;
 
 /** @brief Forward declaration */
-BEncodedValue __M_decode_bencoded_value(const std::string&, size_t&);
+inline BEncodedValue __M_decode_bencoded_value(const std::string&, size_t&);
 
-Integer __M_decode_integer(const std::string&, size_t&);
+inline Integer __M_decode_integer(const std::string&, size_t&);
 
-std::string __M_decode_string(const std::string&, size_t&);
+inline std::string __M_decode_string(const std::string&, size_t&);
 
-BEncodedList __M_decode_list(const std::string&, size_t&);
+inline BEncodedList __M_decode_list(const std::string&, size_t&);
 
-BEncodedDictionary __M_decode_dictionary(const std::string&, size_t&);
+inline BEncodedDictionary __M_decode_dictionary(const std::string&, size_t&);
 
 namespace bencode
 {
@@ -28,7 +28,7 @@ namespace bencode
      *
      * @return result json
      */
-    BEncodedValue decode(const std::string& encoded_value);
+    inline BEncodedValue decode(const std::string& encoded_value);
 }
 
 BEncodedValue bencode::decode(const std::string& encoded_value)

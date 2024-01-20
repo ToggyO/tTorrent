@@ -9,7 +9,7 @@
 using namespace bencode;
 
 /** @brief Forward declaration */
-std::string __M_encode(const BEncodedValue&);
+inline std::string __M_encode(const BEncodedValue&);
 
 struct __encoder;
 
@@ -22,7 +22,7 @@ namespace bencode
      *
      * @return
      */
-    std::string encode(const BEncodedValue& value) { return __M_encode(value); }
+    inline std::string encode(const BEncodedValue& value) { return __M_encode(value); }
 }
 
 struct __encoder

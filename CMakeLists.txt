@@ -8,7 +8,6 @@ add_subdirectory(tests)
 
 file(GLOB_RECURSE SOURCE_FILES LIST_DIRECTORIES true src/*.h src/*.cpp)
 
-add_executable(bittorrent ${SOURCE_FILES}
-        src/commands.h)
+add_executable(bittorrent ${SOURCE_FILES})
 
 set_target_properties(bittorrent PROPERTIES LINKER_LANGUAGE CXX)

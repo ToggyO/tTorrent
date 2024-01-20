@@ -2,7 +2,7 @@
 
 namespace bencode
 {
-    void to_json(json& j, const BEncodedValue& value)
+    inline void to_json(json& j, const BEncodedValue& value)
     {
         std::visit([&](auto&& arg)
            {
@@ -35,7 +35,7 @@ namespace bencode
            }, value);
     }
 
-    void from_json(const json& j, BEncodedValue& value) {
+    inline void from_json(const json& j, BEncodedValue& value) {
         // TODO: implement me
 //    j.at("name").get_to(p.name);
 //    j.at("address").get_to(p.address);

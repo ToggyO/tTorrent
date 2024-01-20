@@ -6,12 +6,12 @@
 
 #include "../sha1/TinySHA1.hpp"
 
-int read_torrent_file_content(const std::string& path, std::string& content)
+inline int read_torrent_file_content(const std::string& path, std::string& content)
 {
     std::ifstream file(path, std::ios::binary);
     if (!file.is_open())
     {
-        std::cerr << "Failed to open torrent file";
+        std::cerr << "Failed to open torrent file" << std::endl;
         return 1;
     }
 
@@ -21,7 +21,7 @@ int read_torrent_file_content(const std::string& path, std::string& content)
     return 0;
 }
 
-std::string compute_hash(const std::string& input)
+inline std::string compute_hash(const std::string& input)
 {
     sha1::SHA1 hasher;
     hasher.processBytes(input.c_str(), input.size());
@@ -32,7 +32,7 @@ std::string compute_hash(const std::string& input)
     return tmp;
 }
 
-std::string encode_info_hash(const std::string& hash) {
+inline std::string encode_info_hash(const std::string& hash) {
     std::string encoded;
     for(auto i = 0; i < hash.size(); i += 2) {
         encoded += '%' + hash.substr(i, 2);
@@ -40,7 +40,7 @@ std::string encode_info_hash(const std::string& hash) {
     return encoded;
 }
 
-std::vector<std::string> get_peaces_hashes(const std::string& pieces_raw)
+inline std::vector<std::string> get_peaces_hashes(const std::string& pieces_raw)
 {
     std::vector<std::string> hashes;
 
