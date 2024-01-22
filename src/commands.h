@@ -6,18 +6,21 @@
 const static std::string k_decode_cmd_name = "decode";
 const static std::string k_info_cmd_name = "info";
 const static std::string k_peers_cmd_name = "peers";
+const static std::string k_handshake_cmd_name = "handshake";
 
 enum class Command
 {
     unknown,
     decode,
     info,
-    peers
+    peers,
+    handshake
 };
 
 /** @brief Command literal names mapper. */
 std::unordered_map<std::string, Command> command_mapper = {
     { k_decode_cmd_name, Command::decode },
     { k_info_cmd_name, Command::info },
-    { k_peers_cmd_name, Command::peers }
+    { k_peers_cmd_name, Command::peers },
+    { k_handshake_cmd_name, Command::handshake }
 };

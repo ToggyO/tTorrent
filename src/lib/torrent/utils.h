@@ -32,7 +32,8 @@ inline std::string compute_hash(const std::string& input)
     return tmp;
 }
 
-inline std::string encode_info_hash(const std::string& hash) {
+inline std::string encode_info_hash(const std::string& hash)
+{
     std::string encoded;
     for(auto i = 0; i < hash.size(); i += 2) {
         encoded += '%' + hash.substr(i, 2);

@@ -26,6 +26,8 @@ int main(int argc, char* argv[])
             return process_info(argc, argv);
         case Command::peers:
             return process_peers(argc, argv);
+        case Command::handshake:
+            return process_handshake(argc, argv);
         default:
             std::cerr << "Unknown command: " << command << std::endl;
             return 1;
