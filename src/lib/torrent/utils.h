@@ -77,19 +77,22 @@ inline std::string to_hex(const std::string_view input)
     return ss.str();
 }
 
+inline std::string from_hex(const std::string& input)
+{
+    char hash[40];
+    for (size_t i = 0; i < input.size(); i += 2)
+    {
+        hash[i / 2] = std::stoi(input.substr(i, 2), nullptr, 16);
+    }
+    return hash;
+}
+
 inline std::vector<std::string> get_peaces_hashes(const std::string& pieces_raw)
 {
     std::vector<std::string> hashes;
 
     for(size_t i = 0; i < pieces_raw.size(); i += 20) {
         std::string piece_hash = pieces_raw.substr(i, 20);
-//        std::stringstream ss;
-//        // Convert each byte in the slice to hexadecimal format
-//        for (unsigned char byte : piece_hash){
-//            ss << std::hex << std::setw(2) << std::setfill('0') << (int)byte;
-//        }
-//
-//        hashes.push_back(ss.str()); TODO: remove
         hashes.push_back(std::move(to_hex(piece_hash)));
     }
 

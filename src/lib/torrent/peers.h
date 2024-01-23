@@ -30,7 +30,6 @@ constexpr static int __k_peer_ip_byte_size = 6;
 constexpr static std::string_view __k_protocol = "BitTorrent protocol";
 
 // TODO: add descr
-// TODO: win implementation
 namespace torrent
 {
     using namespace bencode;
@@ -101,7 +100,7 @@ namespace torrent
         return true;
     }
 
-    // TODO: win implementation
+    // TODO: check win implementation
     inline int get_peer_handshake(const std::string& domain, size_t port, const std::string& info_hash, std::string& result)
     {
         int sock;
@@ -135,44 +134,16 @@ namespace torrent
             return 1;
         }
 
-//        unsigned char length = 19;
-////        unsigned char protocol[20] = "BitTorrent protocol";
-//        unsigned char bytes_to_skip[8] = {0};
 
-        char hash[40];
-        for (size_t i = 0; i < info_hash.size(); i += 2)
-            hash[i / 2] = std::stoi(info_hash.substr(i, 2), nullptr, 16);
-
-//        std::string hash = hex_to_string(info_hash);
-//        std::string self_id = "00112233445566778899";
-
-        const size_t len = 69;
+        const size_t len = 69; // 68 + \0
         char msg[len];
         msg[0] = 19;
-        std::strcpy(msg + 1, "BitTorrent protocol");
+        std::strcpy(msg + 1, __k_protocol.data());
         std::memset(msg + 20, 0, 8);
-        std::strcpy(msg + 28, hash);
+        std::strcpy(msg + 28, from_hex(info_hash).c_str());
         std::strcpy(msg + 48, "00112233445566778899");
-//        std::stringstream msg;
-//        msg
-//                << length
-//                << __k_protocol
-//                << bytes_to_skip
-//                << hash
-//                << self_id; // TODO: generate peer id
 
-//        msg
-//            << 19
-//            << __k_protocol
-//            << bytes_to_skip
-//            << info_hash
-//            << "00112233445566778899"; // TODO: generate peer id
-
-//        auto message = msg.str();
-//        auto message = std::string(msg);
-//        size_t transfer_msg_size = message.size() + 1; // TODO: проверить + 1
-//        auto response = send(sock, message.c_str(), transfer_msg_size, 0); //  message.size() + 1 includes Clang null terminator
-        auto response = send(sock, msg, len - 1, 0); //  message.size() + 1 includes Clang null terminator
+        auto response = send(sock, msg, len - 1, 0);
         if (response == -1)
         {
             std::cerr << "Error sending data" << std::endl;
@@ -180,8 +151,6 @@ namespace torrent
         }
 
         char buffer[1024] = {0};
-//        memset(&buffer, 0, transfer_msg_size);
-
         ssize_t received = recv(sock, buffer, sizeof(buffer), 0);
         if (received < 0)
         {
@@ -190,20 +159,7 @@ namespace torrent
         }
 
         close(sock);
-//        char buffer[] = "3�Hp\u007F�Ӣp�|�f�\u007Fm�g���R�Nn鋫g|-�_2Y9�-q\u000Eo����\u000E\u0016]�\u001D\u001F�c��Z{��i�o)��E��U�����u�]e\u007F����\u000E �\u0005\u0005�� �e\u0005��(�g�'6�\u001B\u0013\u000E_,�O";
-
-
-//        std::string recv_peer_id(buffer + 48, buffer + 68);
-//        std::string recv_peer_id = std::string(buffer, buffer + (len - 1));
-//        std::stringstream ss;
-//        for (unsigned char c : recv_peer_id) {
-//            ss << std::hex << std::setfill('0') << std::setw(2)
-//               << static_cast<int>(c);
-//        }
-//        result = ss.str();
-//        result = std::string(buffer, received); TODO: remove
         result = std::string(buffer, buffer + received);
-
         return 0;
     }
 }

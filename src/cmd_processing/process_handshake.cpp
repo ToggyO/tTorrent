@@ -10,22 +10,29 @@ std::pair<std::string, size_t> split_inet_address(const std::string_view address
         throw std::runtime_error("Invalid inet address: " + std::string(address));
     }
 
-    auto host = address.substr(0, colon_index);
-    auto port = std::stoll(std::string(address.substr(colon_index + 1)));
-    return std::pair<std::string, size_t>(host, port);
+    std::string host;
+    long long port;
+    try
+    {
+        host = address.substr(0, colon_index);
+        port = std::stoll(std::string(address.substr(colon_index + 1)));
+    }
+    catch (const std::exception& exception)
+    {
+        const std::string message = "Failed to split inet address: ";
+        throw std::runtime_error(message + exception.what());
+    }
+    return {host, port};
 }
 
-// TODO: чекнуть на дупликации process_peers, process_info
 int process_handshake(int argc, char* argv[])
 {
     if (argc < 4)
     {
-        std::cerr << "Usage: " << argv[0] << " info <torrent_file_path>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " handshake <torrent_file_path> <peer_ip>:<peer_port>" << std::endl;
         return 1;
     }
 
-    // TODO: validate <peer_ip>:<peer_port>
-    // argv[3]
     std::string path = argv[2];
     std::string encoded_value;
 
@@ -43,10 +50,8 @@ int process_handshake(int argc, char* argv[])
         if (auto search = dictionary_ptr->find("info"); search != dictionary_ptr->end())
         {
             auto encoded_info = bencode::encode(search->second);
-//            info_hash = std::move(encode_info_hash(compute_hash(encoded_info)));
             info_hash = std::move(compute_hash(encoded_info));
         }
-        // TODO: validate info_hash
 
         std::string handshake_result;
         const auto& [host, port] = split_inet_address(argv[3]);
