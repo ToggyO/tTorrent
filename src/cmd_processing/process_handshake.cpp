@@ -48,14 +48,15 @@ int process_handshake(int argc, char* argv[])
         }
         // TODO: validate info_hash
 
-        std::string peer_id;
+        std::string handshake_result;
         const auto& [host, port] = split_inet_address(argv[3]);
-        int handshake_result = torrent::make_peer_handshake(host, port, info_hash, peer_id);
-        if (handshake_result != 0)
+        int result_code = torrent::get_peer_handshake(host, port, info_hash, handshake_result);
+        if (result_code != 0)
         {
             throw std::runtime_error("Connection error");
         }
 
+        auto peer_id = to_hex(handshake_result.substr(48, 20));
         std::cout << "Peer ID: " << peer_id << std::endl;
     }
     catch (std::exception& ex)

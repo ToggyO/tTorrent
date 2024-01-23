@@ -102,7 +102,7 @@ namespace torrent
     }
 
     // TODO: win implementation
-    inline int make_peer_handshake(const std::string& domain, size_t port, const std::string& info_hash, std::string& result)
+    inline int get_peer_handshake(const std::string& domain, size_t port, const std::string& info_hash, std::string& result)
     {
         int sock;
 #if defined(_WIN32) || defined(_WIN64)
@@ -202,8 +202,7 @@ namespace torrent
 //        }
 //        result = ss.str();
 //        result = std::string(buffer, received); TODO: remove
-//        std::string(buffer, buffer + received);
-        result = std::string(buffer + 20, buffer + 40);
+        result = std::string(buffer, buffer + received);
 
         return 0;
     }

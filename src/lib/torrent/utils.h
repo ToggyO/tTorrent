@@ -22,6 +22,7 @@ inline int read_torrent_file_content(const std::string& path, std::string& conte
     return 0;
 }
 
+// TODO: check or remove
 //inline std::string compute_hash(const std::string& input)
 //{
 //    sha1::SHA1 hasher;
@@ -40,6 +41,7 @@ inline std::string compute_hash(const std::string& input)
     return hasher.final();
 }
 
+// TODO: check or remove
 inline std::string hex_to_string(const std::string& in) {
     std::string output;
     if ((in.length() % 2) != 0) {
@@ -65,19 +67,30 @@ inline std::string encode_info_hash(const std::string& hash)
     return encoded;
 }
 
+inline std::string to_hex(const std::string_view input)
+{
+    std::stringstream ss;
+    // Convert each byte in the slice to hexadecimal format
+    for (unsigned char byte : input){
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)byte;
+    }
+    return ss.str();
+}
+
 inline std::vector<std::string> get_peaces_hashes(const std::string& pieces_raw)
 {
     std::vector<std::string> hashes;
 
     for(size_t i = 0; i < pieces_raw.size(); i += 20) {
         std::string piece_hash = pieces_raw.substr(i, 20);
-        std::stringstream ss;
-        // Convert each byte in the slice to hexadecimal format
-        for (unsigned char byte : piece_hash){
-            ss << std::hex << std::setw(2) << std::setfill('0') << (int)byte;
-        }
-
-        hashes.push_back(ss.str());
+//        std::stringstream ss;
+//        // Convert each byte in the slice to hexadecimal format
+//        for (unsigned char byte : piece_hash){
+//            ss << std::hex << std::setw(2) << std::setfill('0') << (int)byte;
+//        }
+//
+//        hashes.push_back(ss.str()); TODO: remove
+        hashes.push_back(std::move(to_hex(piece_hash)));
     }
 
     return hashes;
