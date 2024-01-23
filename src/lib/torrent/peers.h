@@ -202,7 +202,8 @@ namespace torrent
 //        }
 //        result = ss.str();
 //        result = std::string(buffer, received); TODO: remove
-        result = std::string(buffer, buffer + received);
+//        std::string(buffer, buffer + received);
+        result = std::string(buffer + 20, buffer + 40);
 
         return 0;
     }
