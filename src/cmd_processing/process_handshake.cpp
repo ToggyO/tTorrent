@@ -1,7 +1,6 @@
 #include "processors.h"
 
 #include "../lib/torrent/peers.h"
-#include "../lib/torrent/utils.h"
 
 std::pair<std::string, size_t> split_inet_address(const std::string_view address)
 {
@@ -12,7 +11,7 @@ std::pair<std::string, size_t> split_inet_address(const std::string_view address
     }
 
     auto host = address.substr(0, colon_index);
-    auto port = std::stoll(address.substr(colon_index));
+    auto port = std::stoll(std::string(address.substr(colon_index + 1)));
     return std::pair<std::string, size_t>(host, port);
 }
 
@@ -44,13 +43,18 @@ int process_handshake(int argc, char* argv[])
         if (auto search = dictionary_ptr->find("info"); search != dictionary_ptr->end())
         {
             auto encoded_info = bencode::encode(search->second);
-            info_hash = std::move(encode_info_hash(compute_hash(encoded_info)));
+//            info_hash = std::move(encode_info_hash(compute_hash(encoded_info)));
+            info_hash = std::move(compute_hash(encoded_info));
         }
         // TODO: validate info_hash
 
         std::string peer_id;
         const auto& [host, port] = split_inet_address(argv[3]);
-        torrent::make_peer_handshake(host, port, info_hash, peer_id);
+        int handshake_result = torrent::make_peer_handshake(host, port, info_hash, peer_id);
+        if (handshake_result != 0)
+        {
+            throw std::runtime_error("Connection error");
+        }
 
         std::cout << "Peer ID: " << peer_id << std::endl;
     }

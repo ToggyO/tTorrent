@@ -3,11 +3,9 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-
 #if defined(_WIN32) || defined(_WIN64)
 #include <winsock2.h>
 #endif
-
 #if defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -32,6 +30,7 @@ constexpr static int __k_peer_ip_byte_size = 6;
 constexpr static std::string_view __k_protocol = "BitTorrent protocol";
 
 // TODO: add descr
+// TODO: win implementation
 namespace torrent
 {
     using namespace bencode;
@@ -47,7 +46,7 @@ namespace torrent
         ushort compact;
     };
 
-    std::string get_peers_info(std::string&& announce, TorrentDownloadInfo&& info)
+    inline std::string get_peers_info(std::string&& announce, TorrentDownloadInfo&& info)
     {
         std::stringstream ss;
 
@@ -67,7 +66,7 @@ namespace torrent
         return std::string{response.body.begin(), response.body.end()};
     }
 
-    bool try_extract_peers(const std::string& bencoded_peers, std::vector<std::string>& result)
+    inline bool try_extract_peers(const std::string& bencoded_peers, std::vector<std::string>& result)
     {
         auto decoded_peers_info = decode(bencoded_peers);
         const auto decoded_peers_info_dict = reinterpret_cast<BEncodedDictionary*>(&decoded_peers_info);
@@ -103,9 +102,15 @@ namespace torrent
     }
 
     // TODO: win implementation
-    inline int make_peer_handshake(const std::string& domain, size_t port, const std::string_view info_hash, std::string& result)
+    inline int make_peer_handshake(const std::string& domain, size_t port, const std::string& info_hash, std::string& result)
     {
-        int sock = socket(AF_INET, SOCK_STREAM, 0);
+        int sock;
+#if defined(_WIN32) || defined(_WIN64)
+        sock = WSAStartup(MAKEWORD(2,2), &wsaData);
+#endif
+#if defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
+        sock = socket(AF_INET, SOCK_STREAM, 0);
+#endif
         if (sock == -1)
         {
             std::cerr << "Error creating socket" << std::endl;
@@ -115,7 +120,6 @@ namespace torrent
         sockaddr_in hint{};
         hint.sin_family = AF_INET;
         hint.sin_port = htons(port);
-
         if (inet_pton(AF_INET, domain.c_str(), &hint.sin_addr) <= 0)
         {
             std::cerr << "Error converting IP address" << std::endl;
@@ -123,43 +127,82 @@ namespace torrent
             return 1;
         }
 
-        int connect_result = connect(sock, (sockaddr*)&hint, sizeof(hint));
+        int connect_result = connect(sock, (struct sockaddr*)&hint, sizeof(hint));
         if (connect_result == -1)
         {
-            std::cerr << "Error connecting to the server" << std::endl;
+            std::cerr << "Error connecting to the server: " << errno << std::endl;
             close(sock);
             return 1;
         }
 
-        std::stringstream msg;
-        msg
-            << 19
-            << __k_protocol
-            << (unsigned char)0 << (unsigned char)0 << (unsigned char)0 << (unsigned char)0 << (unsigned char)0 << (unsigned char)0 << (unsigned char)0 << (unsigned char)0 // TODO: refactor this shieeeeeeeeeet
-            << info_hash
-            << "00112233445566778899"; // TODO: generate peer id
+//        unsigned char length = 19;
+////        unsigned char protocol[20] = "BitTorrent protocol";
+//        unsigned char bytes_to_skip[8] = {0};
 
-        auto message = msg.str();
-        size_t transfer_msg_size = message.size() + 1; // TODO: проверить + 1
-        auto response = send(sock, message.c_str(), transfer_msg_size, 0); //  message.size() + 1 includes Clang null terminator
+        char hash[40];
+        for (size_t i = 0; i < info_hash.size(); i += 2)
+            hash[i / 2] = std::stoi(info_hash.substr(i, 2), nullptr, 16);
+
+//        std::string hash = hex_to_string(info_hash);
+//        std::string self_id = "00112233445566778899";
+
+        const size_t len = 69;
+        char msg[len];
+        msg[0] = 19;
+        std::strcpy(msg + 1, "BitTorrent protocol");
+        std::memset(msg + 20, 0, 8);
+        std::strcpy(msg + 28, hash);
+        std::strcpy(msg + 48, "00112233445566778899");
+//        std::stringstream msg;
+//        msg
+//                << length
+//                << __k_protocol
+//                << bytes_to_skip
+//                << hash
+//                << self_id; // TODO: generate peer id
+
+//        msg
+//            << 19
+//            << __k_protocol
+//            << bytes_to_skip
+//            << info_hash
+//            << "00112233445566778899"; // TODO: generate peer id
+
+//        auto message = msg.str();
+//        auto message = std::string(msg);
+//        size_t transfer_msg_size = message.size() + 1; // TODO: проверить + 1
+//        auto response = send(sock, message.c_str(), transfer_msg_size, 0); //  message.size() + 1 includes Clang null terminator
+        auto response = send(sock, msg, len - 1, 0); //  message.size() + 1 includes Clang null terminator
         if (response == -1)
         {
             std::cerr << "Error sending data" << std::endl;
             return 1;
         }
 
-        char buffer[transfer_msg_size];
-        memset(&buffer, 0, transfer_msg_size);
+        char buffer[1024] = {0};
+//        memset(&buffer, 0, transfer_msg_size);
 
-        ssize_t received = 0;
-        do
+        ssize_t received = recv(sock, buffer, sizeof(buffer), 0);
+        if (received < 0)
         {
-            received += recv(sock, buffer, transfer_msg_size, 0);
-        } while (received < transfer_msg_size);
+            std::cerr << "Error receiving data" << std::endl;
+            return 1;
+        }
 
         close(sock);
+//        char buffer[] = "3�Hp\u007F�Ӣp�|�f�\u007Fm�g���R�Nn鋫g|-�_2Y9�-q\u000Eo����\u000E\u0016]�\u001D\u001F�c��Z{��i�o)��E��U�����u�]e\u007F����\u000E �\u0005\u0005�� �e\u0005��(�g�'6�\u001B\u0013\u000E_,�O";
 
-        result = std::string(buffer, received);
+
+//        std::string recv_peer_id(buffer + 48, buffer + 68);
+//        std::string recv_peer_id = std::string(buffer, buffer + (len - 1));
+//        std::stringstream ss;
+//        for (unsigned char c : recv_peer_id) {
+//            ss << std::hex << std::setfill('0') << std::setw(2)
+//               << static_cast<int>(c);
+//        }
+//        result = ss.str();
+//        result = std::string(buffer, received); TODO: remove
+        result = std::string(buffer, buffer + received);
 
         return 0;
     }

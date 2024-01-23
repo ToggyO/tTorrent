@@ -4,7 +4,8 @@
 #include <iostream>
 #include <string>
 
-#include "../sha1/TinySHA1.hpp"
+//#include "../sha1/TinySHA1.hpp"
+#include "../sha1/sha1.hpp"
 
 inline int read_torrent_file_content(const std::string& path, std::string& content)
 {
@@ -21,15 +22,38 @@ inline int read_torrent_file_content(const std::string& path, std::string& conte
     return 0;
 }
 
+//inline std::string compute_hash(const std::string& input)
+//{
+//    sha1::SHA1 hasher;
+//    hasher.processBytes(input.c_str(), input.size());
+//    uint32_t digest[5];
+//    hasher.getDigest(digest);
+//    char tmp[48];
+//    snprintf(tmp, 45, "%08x%08x%08x%08x%08x", digest[0], digest[1], digest[2], digest[3], digest[4]);
+//    return tmp;
+//}
+
 inline std::string compute_hash(const std::string& input)
 {
-    sha1::SHA1 hasher;
-    hasher.processBytes(input.c_str(), input.size());
-    uint32_t digest[5];
-    hasher.getDigest(digest);
-    char tmp[48];
-    snprintf(tmp, 45, "%08x%08x%08x%08x%08x", digest[0], digest[1], digest[2], digest[3], digest[4]);
-    return tmp;
+    SHA1 hasher;
+    hasher.update(input);
+    return hasher.final();
+}
+
+inline std::string hex_to_string(const std::string& in) {
+    std::string output;
+    if ((in.length() % 2) != 0) {
+        throw std::runtime_error("String is not valid length ...");
+    }
+    size_t cnt = in.length() / 2;
+    for (size_t i = 0; cnt > i; ++i) {
+        uint32_t s = 0;
+        std::stringstream ss;
+        ss << std::hex << in.substr(i * 2, 2);
+        ss >> s;
+        output.push_back(static_cast<unsigned char>(s));
+    }
+    return output;
 }
 
 inline std::string encode_info_hash(const std::string& hash)

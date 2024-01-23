@@ -15,6 +15,7 @@ add_subdirectory(tests)
 file(GLOB_RECURSE SOURCE_FILES LIST_DIRECTORIES true src/*.h src/*.cpp)
 
 add_executable(bittorrent ${SOURCE_FILES}
-        src/cmd_processing/process_handshake.cpp)
+        src/cmd_processing/process_handshake.cpp
+        src/lib/sha1/sha1.hpp)
 
 set_target_properties(bittorrent PROPERTIES LINKER_LANGUAGE CXX)
