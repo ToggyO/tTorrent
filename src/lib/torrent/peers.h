@@ -1,4 +1,5 @@
 #pragma once
+#pragma comment(lib, "ws2_32.lib")
 
 #include <iostream>
 #include <string>
@@ -158,7 +159,13 @@ namespace torrent
             return 1;
         }
 
+#if defined(_WIN32) || defined(_WIN64)
+        closesocket(sock);
+#endif
+#if defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
         close(sock);
+#endif
+
         result = std::string(buffer, buffer + received);
         return 0;
     }
