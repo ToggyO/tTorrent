@@ -12,9 +12,10 @@
 #include <arpa/inet.h>
 #endif
 
-#include "../http/HTTPRequest.hpp"
+#include "../net/http/HTTPRequest.hpp"
 #include "../bencode/bencoded_value.h"
 #include "../bencode/decode.h"
+#include "../net/socket/socket.h"
 
 constexpr static char __k_question_char = '?';
 constexpr static char __k_ampersand_char = '&';
@@ -101,40 +102,12 @@ namespace torrent
         return true;
     }
 
-    // TODO: check win implementation
     inline int get_peer_handshake(const std::string& domain, size_t port, const std::string& info_hash, std::string& result)
     {
-        int sock;
-#if defined(_WIN32) || defined(_WIN64)
-        sock = WSAStartup(MAKEWORD(2,2), &wsaData);
-#endif
-#if defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
-        sock = socket(AF_INET, SOCK_STREAM, 0);
-#endif
-        if (sock == -1)
-        {
-            std::cerr << "Error creating socket" << std::endl;
-            return 1;
-        }
+        net::Socket socket;
 
-        sockaddr_in hint{};
-        hint.sin_family = AF_INET;
-        hint.sin_port = htons(port);
-        if (inet_pton(AF_INET, domain.c_str(), &hint.sin_addr) <= 0)
-        {
-            std::cerr << "Error converting IP address" << std::endl;
-            close(sock);
-            return 1;
-        }
-
-        int connect_result = connect(sock, (struct sockaddr*)&hint, sizeof(hint));
-        if (connect_result == -1)
-        {
-            std::cerr << "Error connecting to the server: " << errno << std::endl;
-            close(sock);
-            return 1;
-        }
-
+        auto status = socket.connect_to(domain, port);
+        if (status > 0) { return (int)status; }
 
         const size_t len = 69; // 68 + \0
         char msg[len];
@@ -144,29 +117,86 @@ namespace torrent
         std::strcpy(msg + 28, from_hex(info_hash).c_str());
         std::strcpy(msg + 48, "00112233445566778899");
 
-        auto response = send(sock, msg, len - 1, 0);
-        if (response == -1)
-        {
-            std::cerr << "Error sending data" << std::endl;
-            return 1;
-        }
+        status = socket.send(msg, len - 1);
+        if (status > 0) { return (int)status; }
 
-        char buffer[1024] = {0};
-        ssize_t received = recv(sock, buffer, sizeof(buffer), 0);
-        if (received < 0)
-        {
-            std::cerr << "Error receiving data" << std::endl;
-            return 1;
-        }
+        std::vector<std::uint8_t> response;
+        response.reserve(len - 1);
 
-#if defined(_WIN32) || defined(_WIN64)
-        closesocket(sock);
-#endif
-#if defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
-        close(sock);
-#endif
+        status = socket.receive(response);
+        if (status > 0) { return (int)status; }
 
-        result = std::string(buffer, buffer + received);
+        result = std::string(response.begin(), response.end());
         return 0;
     }
+
+    // TODO: remove
+//    inline int get_peer_handshake(const std::string& domain, size_t port, const std::string& info_hash, std::string& result)
+//    {
+//        int sock;
+//#if defined(_WIN32) || defined(_WIN64)
+//        WSADATA wsaData;
+//        sock = WSAStartup(MAKEWORD(2,2), &wsaData);
+//#endif
+//#if defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
+//        sock = socket(AF_INET, SOCK_STREAM, 0);
+//#endif
+//        if (sock == -1)
+//        {
+//            std::cerr << "Error creating socket" << std::endl;
+//            return 1;
+//        }
+//
+//        sockaddr_in hint{};
+//        hint.sin_family = AF_INET;
+//        hint.sin_port = htons(port);
+//        if (inet_pton(AF_INET, domain.c_str(), &hint.sin_addr) <= 0)
+//        {
+//            std::cerr << "Error converting IP address" << std::endl;
+//            close(sock);
+//            return 1;
+//        }
+//
+//        int connect_result = connect(sock, (struct sockaddr*)&hint, sizeof(hint));
+//        if (connect_result == -1)
+//        {
+//            std::cerr << "Error connecting to the server: " << errno << std::endl;
+//            close(sock);
+//            return 1;
+//        }
+//
+//
+//        const size_t len = 69; // 68 + \0
+//        char msg[len];
+//        msg[0] = 19;
+//        std::strcpy(msg + 1, __k_protocol.data());
+//        std::memset(msg + 20, 0, 8);
+//        std::strcpy(msg + 28, from_hex(info_hash).c_str());
+//        std::strcpy(msg + 48, "00112233445566778899");
+//
+//        auto response = send(sock, msg, len - 1, 0);
+//        if (response == -1)
+//        {
+//            std::cerr << "Error sending data" << std::endl;
+//            return 1;
+//        }
+//
+//        char buffer[1024] = {0};
+//        ssize_t received = recv(sock, buffer, sizeof(buffer), 0);
+//        if (received < 0)
+//        {
+//            std::cerr << "Error receiving data" << std::endl;
+//            return 1;
+//        }
+//
+//#if defined(_WIN32) || defined(_WIN64)
+//        closesocket(sock);
+//#endif
+//#if defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
+//        close(sock);
+//#endif
+//
+//        result = std::string(buffer, buffer + received);
+//        return 0;
+//    }
 }
