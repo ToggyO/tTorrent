@@ -4,14 +4,6 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#if defined(_WIN32) || defined(_WIN64)
-#include <winsock2.h>
-#endif
-#if defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#endif
-
 #include "../net/http/HTTPRequest.hpp"
 #include "../bencode/bencoded_value.h"
 #include "../bencode/decode.h"
@@ -102,6 +94,7 @@ namespace torrent
         return true;
     }
 
+    // TODO: check
     inline int get_peer_handshake(const std::string& domain, size_t port, const std::string& info_hash, std::string& result)
     {
         net::Socket socket;

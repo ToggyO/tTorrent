@@ -2,28 +2,6 @@
 
 #include "../lib/torrent/peers.h"
 
-std::pair<std::string, size_t> split_inet_address(const std::string_view address)
-{
-    size_t colon_index = address.find( __k_colon, 0);
-    if (colon_index == std::string::npos)
-    {
-        throw std::runtime_error("Invalid inet address: " + std::string(address));
-    }
-
-    std::string host;
-    long long port;
-    try
-    {
-        host = address.substr(0, colon_index);
-        port = std::stoll(std::string(address.substr(colon_index + 1)));
-    }
-    catch (const std::exception& exception)
-    {
-        const std::string message = "Failed to split inet address: ";
-        throw std::runtime_error(message + exception.what());
-    }
-    return {host, port};
-}
 
 int process_handshake(int argc, char* argv[])
 {

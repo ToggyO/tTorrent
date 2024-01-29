@@ -8,20 +8,27 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #endif
-#if defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
+#if defined(linux) || defined(__linux__) || defined(__linux)
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
 #endif
+#if defined(__APPLE__) && defined(__MACH__)
+// TODO: OSX implementation
+#endif
+#include <optional>
+#include <span>
 #include <stdexcept>
 #include <vector>
 
 namespace net
 {
     constexpr static size_t BUFFER_SIZE = 4096;
+    constexpr auto socket_creation_failed { -1 };
 
-    // TODO: move/copy ctors/operators
+    using file_descriptor = int;
+
     // TODO: check win implementation
     // TODO: add descr
     // TODO: make thread safe
@@ -32,31 +39,52 @@ namespace net
         Socket() : m_is_connected{false}
         {
             WSADATA wsaData;
-            m_socket = WSAStartup(MAKEWORD(2,2), &wsaData);
-#elif defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
+            auto sock_creation_result = WSAStartup(MAKEWORD(2,2), &wsaData);
+#elif defined(linux) || defined(__linux__) || defined(__linux)
         explicit Socket(int domain = AF_INET, int type = SOCK_STREAM, int protocol = 0)
             : m_domain{domain},
             m_is_connected{false}
         {
-            m_socket = socket(domain, type, protocol);
+            auto sock_creation_result = socket(domain, type, protocol);
 #else
             throw std::runtime_error("Unsupported platform");
 #endif
-            if (m_socket == -1)
+            if (sock_creation_result == socket_creation_failed)
             {
                 throw std::runtime_error("Error creating socket");
             }
+
+            m_socket = sock_creation_result;
         }
 
-        ~Socket()
+        Socket(const Socket&) = delete;
+        Socket(Socket&& other) noexcept
+            : m_socket{other.m_socket},
+            m_domain{other.m_domain},
+            m_is_connected{other.m_is_connected}
         {
-#if defined(_WIN32) || defined(_WIN64)
-            closesocket(m_socket);
-            WSACleanup();
-#endif
-#if defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
-            close(m_socket);
-#endif
+            other.m_socket = std::nullopt;
+            other.m_domain = 0;
+            other.m_is_connected = false;
+        }
+
+        ~Socket() { close_if_necessary(); }
+
+        Socket& operator=(const Socket&) = delete;
+        Socket& operator=(Socket&& other) noexcept
+        {
+            if (other.m_socket != m_socket)
+            {
+                close_if_necessary();
+                m_socket = other.m_socket;
+                m_domain = other.m_domain;
+                m_is_connected = other.m_is_connected;
+
+                other.m_socket = std::nullopt;
+                other.m_domain = 0;
+                other.m_is_connected = false;
+            }
+            return *this;
         }
 
         ssize_t connect_to(std::string_view host, size_t port)
@@ -70,7 +98,7 @@ namespace net
                 return 1;
             }
 
-            ssize_t connect_result = ::connect(m_socket, (struct sockaddr*)&hint, sizeof(hint));
+            ssize_t connect_result = ::connect(m_socket.value(), (struct sockaddr*)&hint, sizeof(hint));
             if (connect_result == -1)
             {
                 std::cerr << "Error connecting to the server: " << errno << std::endl;
@@ -81,9 +109,7 @@ namespace net
             return 0;
         }
 
-//        ssize_t send(std::string_view message) const TODO: check
-//        ssize_t send(const std::string& message) const
-        ssize_t send(const char* message, size_t message_length) const
+        ssize_t send(const void* buffer, const size_t length) const
         {
             if (!m_is_connected)
             {
@@ -91,8 +117,14 @@ namespace net
                 return 1;
             }
 
-//            auto response = ::send(m_socket, message.data(), message.size(), 0);
-            auto response = ::send(m_socket, message, message_length, 0);
+//            std::vector<unsigned char> payload;
+//            payload.reserve(message_length);
+//
+//            std::span<unsigned char> span(reinterpret_cast<unsigned char*>(message_ptr), message_length);
+//            std::copy(span.begin(), span.end(), std::back_insert_iterator<std::vector<unsigned char>>(payload));
+
+//            auto response = ::send(m_socket.value(), payload.data(), payload.size(), 0); TODO: remove
+            auto response = ::send(m_socket.value(), reinterpret_cast<const char*>(buffer), length, 0);
             if (response == -1)
             {
                 std::cerr << "Error sending data" << std::endl;
@@ -111,9 +143,9 @@ namespace net
 
             char buffer[BUFFER_SIZE] = {0};
             ssize_t received;
-//            do
+//            do TODO: HANDLE LOOP
 //            {
-                received = recv(m_socket, buffer, sizeof(buffer), 0);
+                received = recv(m_socket.value(), buffer, sizeof(buffer), 0);
                 if (received < 0)
                 {
                     std::cerr << "Error receiving data" << std::endl;
@@ -127,8 +159,26 @@ namespace net
         }
 
     private:
-        int m_socket;
+        std::optional<file_descriptor> m_socket;
         int m_domain;
         bool m_is_connected; // TODO: ATOMIC
+
+        void close_if_necessary()
+        {
+            ssize_t socket_close_result;
+            if (m_socket.has_value())
+            {
+#if defined(_WIN32) || defined(_WIN64)
+                socket_close_result = closesocket(m_socket);
+                WSACleanup();
+#endif
+#if defined(linux) || defined(__linux__) || defined(__linux) || defined(__APPLE__) && defined(__MACH__)
+                socket_close_result = close(m_socket.value());
+#endif
+                if (socket_close_result == socket_creation_failed) {
+                     throw std::system_error(errno, std::system_category(), "Failed to cloe socket ");
+                }
+            }
+        }
     };
 }

@@ -14,3 +14,5 @@ int process_info(int argc, char* argv[]);
 int process_peers(int argc, char* argv[]);
 
 int process_handshake(int argc, char* argv[]);
+
+int process_download_piece(int argc, char* argv[]);
