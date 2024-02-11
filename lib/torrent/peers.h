@@ -13,6 +13,7 @@ constexpr static char __k_question_char = '?';
 constexpr static char __k_ampersand_char = '&';
 constexpr static char __k_equality_sign_char = '=';
 constexpr static char __k_point_char = '.';
+constexpr static std::string_view __k_info = "info";
 constexpr static std::string_view __k_info_hash = "info_hash";
 constexpr static std::string_view __k_peer_id = "peer_id";
 constexpr static std::string_view __k_port = "port";

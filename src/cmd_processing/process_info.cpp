@@ -1,5 +1,5 @@
 #include "processors.h"
-#include "../lib/torrent/meta.h"
+#include "../../lib/torrent/meta.h" // TODO: remove ..
 
 int process_info(int argc, char* argv[])
 {

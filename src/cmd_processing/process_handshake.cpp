@@ -1,7 +1,6 @@
 #include "processors.h"
 
-#include "../lib/torrent/peers.h"
-
+#include "../../lib/torrent/peers.h" // TODO: remove ..
 
 int process_handshake(int argc, char* argv[])
 {

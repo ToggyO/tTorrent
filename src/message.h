@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include <cstdint>
 #include <vector>
 
@@ -8,6 +9,12 @@ struct PeerMessage
 {
     uint32_t length;
     uint8_t id;
+
+//    static PeerMessage parse()
+//    {
+//        return
+//    }
+
 } __attribute__((packed));
 
 struct BitfieldPeerMessage : public PeerMessage

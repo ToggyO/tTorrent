@@ -1,5 +1,5 @@
 #include "processors.h"
-#include "../lib/json/json_bencode.h"
+#include "../../lib/json/json_bencode.h" // TODO: remove ..
 
 int process_decode(int argc, char* argv[])
 {

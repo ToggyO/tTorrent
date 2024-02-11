@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-#include "../lib/bencode/decode.h"
-#include "../lib/bencode/encode.h"
-#include "../lib/torrent/utils.h"
+#include "../../lib/bencode/decode.h" // TODO: remove ..
+#include "../../lib/bencode/encode.h" // TODO: remove ..
+#include "../utils.h"
 
 // TODO: add descr
 int process_decode(int argc, char* argv[]);

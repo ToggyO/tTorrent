@@ -1,7 +1,8 @@
 #include "processors.h"
-#include "../downloader/downloader.h"
-#include "../net_adapter/net_adapter.h"
-#include "../lib/torrent/peers.h"
+#include "../torrent_client.h"
+#include "../torrent_file.h"
+#include "../peer_manager.h"
+#include "../net/http/http_client.h"
 
 // TODO: duplicate
 int process_download_piece(int argc, char* argv[])
@@ -19,61 +20,46 @@ int process_download_piece(int argc, char* argv[])
 
     try
     {
-        if (read_torrent_file_content(torrent_file_path, encoded_value) > 0)
-        {
-            return 1;
-        }
-
-        auto decoded_value = bencode::decode(encoded_value);
-        auto dictionary_ptr = reinterpret_cast<BEncodedDictionary*>(&decoded_value);
-
-        std::string announce;
-        dictionary_ptr->at("announce").try_get_string(announce);
-
-        torrent::TorrentDownloadInfo download_info;
-        if (auto search = dictionary_ptr->find("info"); search != dictionary_ptr->end())
-        {
-            auto encoded_info = bencode::encode(search->second);
-            download_info.info_hash = std::move(encode_info_hash(compute_hash(encoded_info)));
-
-            auto info_dictionary_ptr = reinterpret_cast<BEncodedDictionary*>(&(search->second));
-            Integer length;
-            info_dictionary_ptr->at("length").try_get_int(length);
-            download_info.left = length;
-        }
+        TorrentFile torrent_file(torrent_file_path);
 
         // TODO: generate unique peer id
-        download_info.peer_id = "00112233445566778899";
+        auto client_id = "00112233445566778899";
         //
 
-        download_info.port = 6881; // TODO: check if port is free
-        download_info.uploaded = 0;
-        download_info.downloaded = 0;
-        download_info.compact = 1;
+        auto encoded_info_hash = encode_info_hash(std::string(torrent_file.get_info_hash()));
+        auto http_client_ptr = std::make_shared<HttpClient>(HttpClient{});
+        PeerManager peer_manager(
+                http_client_ptr,
+                std::move(torrent_file.get_announce()),
+                std::move(encoded_info_hash),
+                client_id,
+                Constants::client_port,
+                torrent_file.get_file_size());
 
-        auto bencoded_peers = torrent::get_peers_info(std::move(announce), std::move(download_info));
+        auto peers = peer_manager.get_peers(0); // TODO: check bytes downloaded
+        std::cout << "kek" << std::endl;
+//        std::vector<std::string> peer_ips;
+//        torrent::try_extract_peers(bencoded_peers, peer_ips);
 
-        std::vector<std::string> peer_ips;
-        torrent::try_extract_peers(bencoded_peers, peer_ips);
-
-        std::shared_ptr<INetInterface> net_adapter = std::make_shared<NetAdapter>();
-        Downloader downloader(net_adapter);
-
-        std::string info_hash;
-        if (auto search = dictionary_ptr->find("info"); search != dictionary_ptr->end())
-        {
-            auto encoded_info = bencode::encode(search->second);
-            info_hash = std::move(compute_hash(encoded_info));
-        }
-
-        std::string handshake_result;
-        const auto& [host, port] = split_inet_address(peer_ips[0]); // TODO: перебирать пиры
-        auto status = downloader.get_peer_handshake(host, port, info_hash, handshake_result);
-        if (status != 0)
-        {
-            throw std::runtime_error("Connection error"); // TODO: check result
-        }
-//        status = downloader.wait_for_bitfield()
+//        std::shared_ptr<INetInterface> net_adapter = std::make_shared<NetAdapter>();
+//        TorrentClient torrent(net_adapter);
+//
+//        std::string info_hash;
+//        if (auto search = dictionary_ptr->find("info"); search != dictionary_ptr->end())
+//        {
+//            auto encoded_info = bencode::encode(search->second);
+//            info_hash = std::move(compute_hash(encoded_info));
+//        }
+//
+//        std::string handshake_result;
+//        const auto& [host, port] = split_inet_address(peer_ips[0]); // TODO: перебирать пиры
+//        auto status = torrent.get_peer_handshake(host, port, info_hash, handshake_result);
+//        if (status != 0)
+//        {
+//            throw std::runtime_error("Connection error"); // TODO: check result
+//        }
+//        torrent.download();
+//        status = torrent_client.wait_for_bitfield()
     }
     catch (std::exception& ex)
     {

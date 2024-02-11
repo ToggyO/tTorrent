@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../downloader/net.interface.h"
-#include "../lib/net/socket/socket.h"
+#include "tcp_client.interface.h"
+#include "../../../lib/net/socket/socket.h"
 
 // TODO: add descr
-class NetAdapter : public net::Socket, public INetInterface
+class TcpClient : public net::Socket, public ITcpClient
 {
 public:
-    NetAdapter() = default;
+    TcpClient() = default;
 
     virtual ssize_t connect(std::string_view host, size_t port) final;
 

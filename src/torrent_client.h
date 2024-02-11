@@ -3,16 +3,17 @@
 #include <cstring>
 #include <memory>
 
-#include "models.h"
-#include "net.interface.h"
-#include "../lib/torrent/utils.h"
+#include "torrent_client/models.h"
+#include "net/tcp/tcp_client.interface.h"
+#include "utils.h"
 
 // TODO: copy/move ctors
-class Downloader
+// TODO: нужно не забыть намазать ретраи
+class TorrentClient
 {
 public:
 
-    explicit Downloader(std::shared_ptr<INetInterface>& interface);
+    explicit TorrentClient(std::shared_ptr<ITcpClient>& interface);
 
     auto get_peer_handshake(const std::string& domain, size_t port, const std::string& info_hash, std::string& result)
     {
@@ -33,7 +34,7 @@ public:
         std::strcpy(msg + 1, "BitTorrent protocol");
         std::memset(msg + 20, 0, 8);
         std::strcpy(msg + 28, from_hex(info_hash).c_str());
-        std::strcpy(msg + 48, "00112233445566778899");
+        std::strcpy(msg + 48, "00112233445566778899"); // TODO: generate client id
 
         std::vector<uint8_t> bytes(msg, msg + len);
         status = adapter->send_request(bytes);
@@ -46,6 +47,8 @@ public:
         if (status > 0) { return (int)status; }
 
         result = std::string(response.begin(), response.end());
+        // TODO: verify handshake
+        m_handshake_done = true;
         return 0;
     }
 
@@ -58,10 +61,14 @@ public:
             throw std::runtime_error(""); // TODO: error message
         }
 
+        auto adapter = m_adapter.lock();
+        std::vector<uint8_t> recv;
+        recv.reserve(4);
+        adapter->get_response(recv);
     }
 
 //    auto send_bitfield(const BitfieldPeerMessage& message) const
-    auto wait_for_bitfield() const
+    auto send_bitfield() const
     {
         auto adapter = m_adapter.lock();
         if (!adapter)
@@ -92,7 +99,7 @@ public:
     }
 
 private:
-    std::weak_ptr<INetInterface> m_adapter;
+    std::weak_ptr<ITcpClient> m_adapter;
     bool m_handshake_done; // TODO: atomic
 
 

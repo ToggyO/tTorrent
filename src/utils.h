@@ -3,8 +3,9 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
-#include "../sha1/sha1.hpp"
+#include "../lib/sha1/sha1.hpp" // TODO: remove ..
 
 inline int read_torrent_file_content(const std::string& path, std::string& content)
 {

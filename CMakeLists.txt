@@ -14,6 +14,19 @@ add_subdirectory(tests)
 
 file(GLOB_RECURSE SOURCE_FILES LIST_DIRECTORIES true src/*.h src/*.cpp)
 
-add_executable(bittorrent ${SOURCE_FILES})
+add_executable(bittorrent ${SOURCE_FILES}
+        src/message.h
+        src/torrent_file.cpp
+        src/torrent_file.h
+        src/peer_manager.h
+        src/peer_manager.cpp
+        src/constants.h
+        src/net/http/http_client.cpp
+        src/net/http/http_client.h
+        src/net/http/http_client.interface.h
+        src/peer_handshake.h
+        src/peer_connection.h
+        src/peer_handshake.cpp
+        src/peer_connection.cpp)
 
 set_target_properties(bittorrent PROPERTIES LINKER_LANGUAGE CXX)
