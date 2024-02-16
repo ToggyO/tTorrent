@@ -15,7 +15,7 @@ add_executable(tests ${TEST_SOURCES})
 
 target_include_directories(tests
     PRIVATE
-        ../lib/bencode
+    ../lib/bencode
 )
 target_link_libraries(tests PUBLIC
     GTest::gtest

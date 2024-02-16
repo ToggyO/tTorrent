@@ -4,7 +4,7 @@ PeerConnection::PeerConnection(const std::shared_ptr<ITcpClient>& client_ptr)
     : m_client_ptr{client_ptr}
 {}
 
-int PeerConnection::get_handshake(const PeerHandshake& handshake)
+std::string PeerConnection::get_handshake(const PeerHandshake& handshake)
 {
     auto client = m_client_ptr.lock();
     if (!client)
@@ -13,20 +13,27 @@ int PeerConnection::get_handshake(const PeerHandshake& handshake)
     }
 
     auto status = client->connect(handshake.get_domain(), handshake.get_port());
-    if (status > 0) { return (int)status; }
+    success_or_throw(status, "connection error");
 
-    const auto handshake_message = handshake.get_protocol_message("00112233445566778899"); // TODO: generate client id
+    const auto& handshake_message = handshake.get_protocol_message();
 
     std::vector<uint8_t> msg(handshake_message.begin(), handshake_message.end());
     status = client->send_request(msg);
-    if (status > 0) { return (int)status; }
+    success_or_throw(status, "request error");
 
     std::vector<std::uint8_t> response;
     response.reserve(handshake.get_size() - 1);
 
     status = client->get_response(response);
-    if (status > 0) { return (int)status; }
+    success_or_throw(status, "response error");
 
-    auto handshake_result = std::string(response.begin(), response.end());
+    return {response.begin(), response.end()};
+}
 
+void PeerConnection::success_or_throw(const ssize_t& status, std::string&& message)
+{
+    if (status > 0)
+    {
+        throw std::runtime_error("PeerConnection: " + message + ". Status: " + std::to_string(status));
+    }
 }

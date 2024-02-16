@@ -1,12 +1,12 @@
 #include "peer_handshake.h"
 
-PeerHandshake::PeerHandshake(std::string&& domain, size_t port, std::string&& info_hash, std::string client_id)
-    : m_domain{std::move(domain)},
+PeerHandshake::PeerHandshake(const std::string& domain, size_t port, const std::string& info_hash, const std::string& client_id)
+    : m_domain{domain},
     m_port{port},
-    m_info_hash{std::move(info_hash)},
+    m_info_hash{info_hash},
     m_is_handshake_cached{false},
     m_cached_handshake(),
-    m_client_id{std::move(client_id)}
+    m_client_id{client_id}
 { }
 
 const std::string& PeerHandshake::get_protocol_message() const
@@ -24,7 +24,7 @@ const std::string& PeerHandshake::get_protocol_message() const
     std::strcpy(msg + 48, m_client_id.data());
 
     m_is_handshake_cached = true;
-    m_cached_handshake = msg;
+    m_cached_handshake = std::string(msg, msg + 68);
 
     return m_cached_handshake;
 }

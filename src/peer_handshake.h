@@ -15,7 +15,7 @@ public:
 
     constexpr static std::string_view Protocol = "BitTorrent protocol";
 
-    PeerHandshake(std::string&& domain, size_t port, std::string&& info_hash, std::string client_id);
+    PeerHandshake(const std::string& domain, size_t port, const std::string& info_hash, const std::string& client_id);
 
     [[nodiscard]] const std::string& get_protocol_message() const;
 
