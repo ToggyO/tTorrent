@@ -45,42 +45,35 @@ int process_download_piece(int argc, char* argv[])
         auto peers = peer_manager.get_peers(0); // TODO: check bytes downloaded
 
         auto tcp_client_ptr = std::make_shared<TcpClient>(TcpClient{});
-        PeerConnection connection(tcp_client_ptr);
 
-        // TODO: handle multiple peers
-//    "00112233445566778899" // TODO: generate client id
-//        PeerHandshake handshake(peers[0]->host, peers[0]->port, info_hash, "00112233445566778899");
-//        auto handshake_result = connection.get_handshake(handshake);
-//        if (!handshake.verify_handshake(handshake_result))
-//        {
-//            throw std::runtime_error("Invalid handshake result: " + handshake_result);
-//        }
-
-
-
-        std::cout << "kek" << std::endl;
-//        std::vector<std::string> peer_ips;
-//        torrent::try_extract_peers(bencoded_peers, peer_ips);
-
-//        std::shared_ptr<INetInterface> net_adapter = std::make_shared<NetAdapter>();
-//        TorrentClient torrent(net_adapter);
-//
-//        std::string info_hash;
-//        if (auto search = dictionary_ptr->find("info"); search != dictionary_ptr->end())
-//        {
-//            auto encoded_info = bencode::encode(search->second);
-//            info_hash = std::move(compute_hash(encoded_info));
-//        }
-//
-        std::string handshake_result;
-//        const auto& [host, port] = split_inet_address(peer_ips[0]); // TODO: перебирать пиры
-        auto status = torrent::get_peer_handshake(peers[0]->host, peers[0]->port, info_hash, handshake_result);
-        if (status != 0)
+        for (const auto& peer : peers) // TODO: multithreaded, work queue
         {
-            throw std::runtime_error("Connection error"); // TODO: check result
+            try {
+                // TODO: handle multiple peers
+//    "00112233445566778899" // TODO: generate client id
+                PeerConnection connection(tcp_client_ptr, PeerHandshake(peers[1]->host, peers[1]->port, info_hash, "00112233445566778899"));
+                // TODO: if bitfield is satisfied - send interested
+                connection.send_interested();
+
+                connection.send_unchoke();
+                connection.read_message<UnchokeMessage>();
+                if (connection.m_choked) {
+                    continue;
+                }
+
+                connection.read_message<BitfieldMessage>(); // TODO: handle payload bitfield - pieces that peer contains
+
+//                // TODO: if bitfield is satisfied - send interested
+//                connection.send_interested();
+
+                auto unchoke = connection.read_message<UnchokeMessage>(); // TODO: check choke or unchoke
+            }
+            catch (...)
+            {
+                continue; // TODO: check
+            }
         }
-//        torrent.download();
-//        status = torrent_client.wait_for_bitfield()
+        std::cout << "kek" << std::endl;
     }
     catch (std::exception& ex)
     {

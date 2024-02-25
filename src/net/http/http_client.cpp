@@ -7,7 +7,7 @@ HttpResponse HttpClient::send(const std::string& url,
     std::chrono::milliseconds timeout)
 {
     http::Request request{url};
-    auto response = request.send("GET");
+    auto response = request.send("GET"); // TODO: заменить на другую либу. ЭТА НЕ ПОДДЕРЖИВАЕТ HTTPS
     return {
         .status = response.status.code,
         .headers = std::move(response.headerFields),

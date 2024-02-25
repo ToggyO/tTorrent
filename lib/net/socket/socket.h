@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <vector>
 
+// TODO: disconnect?
 namespace net
 {
     constexpr static size_t BUFFER_SIZE = 4096;
@@ -53,6 +54,15 @@ namespace net
             {
                 throw std::runtime_error("Error creating socket");
             }
+
+            int timeout = 5; // TODO: HADRCODE
+
+            timeval tv{};
+            tv.tv_sec = timeout;
+            tv.tv_usec = 0; // TODO: таймаут чет не робит! Проверить
+
+            setsockopt(sock_creation_result, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(struct timeval));
+            setsockopt(sock_creation_result, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(struct timeval));
 
             m_socket = sock_creation_result;
         }
@@ -92,6 +102,7 @@ namespace net
             sockaddr_in hint{};
             hint.sin_family = m_domain;
             hint.sin_port = htons(port);
+
             if (inet_pton(AF_INET, host.data(), &hint.sin_addr) <= 0)
             {
                 std::cerr << "Error converting IP address" << std::endl;

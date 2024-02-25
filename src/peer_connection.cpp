@@ -1,10 +1,9 @@
 #include "peer_connection.h"
 
-PeerConnection::PeerConnection(const std::shared_ptr<ITcpClient>& client_ptr)
-    : m_client_ptr{client_ptr}
-{}
-
-std::string PeerConnection::get_handshake(const PeerHandshake& handshake)
+PeerConnection::PeerConnection(const std::shared_ptr<ITcpClient>& client_ptr, PeerHandshake&& handshake)
+    : m_client_ptr{client_ptr},
+      m_handshake(std::move(handshake)),
+      m_choked{false}
 {
     auto client = m_client_ptr.lock();
     if (!client)
@@ -12,17 +11,52 @@ std::string PeerConnection::get_handshake(const PeerHandshake& handshake)
         throw std::runtime_error("PeerConnection: unable to lock weak_ptr"); // TODO: separate
     }
 
-    auto status = client->connect(handshake.get_domain(), handshake.get_port());
+    auto status = client->connect(m_handshake.get_domain(), m_handshake.get_port());
     success_or_throw(status, "connection error");
 
-    const auto& handshake_message = handshake.get_protocol_message();
+    auto handshake_result = make_handshake(client);
+    if (!m_handshake.verify_handshake(handshake_result))
+    {
+        throw std::runtime_error("Invalid handshake result: " + handshake_result);
+    }
+
+    set_peer_id(PeerHandshake::extract_peer_id(handshake_result));
+}
+
+void PeerConnection::send_interested() const
+{
+    auto client = m_client_ptr.lock();
+    if (!client)
+    {
+        throw std::runtime_error("PeerConnection: unable to lock weak_ptr"); // TODO: separate
+    }
+
+    auto status = client->send_request(InterestedMessage().serialize());
+    success_or_throw(status, "send interested error");
+}
+
+void PeerConnection::send_unchoke() const
+{
+    auto client = m_client_ptr.lock();
+    if (!client)
+    {
+        throw std::runtime_error("PeerConnection: unable to lock weak_ptr"); // TODO: separate
+    }
+
+    auto status = client->send_request(UnchokeMessage().serialize());
+    success_or_throw(status, "send unchoke error");
+}
+
+std::string PeerConnection::make_handshake(const std::shared_ptr<ITcpClient>& client)
+{
+    const auto& handshake_message = m_handshake.get_protocol_message();
 
     std::vector<uint8_t> msg(handshake_message.begin(), handshake_message.end());
-    status = client->send_request(msg);
+    auto status = client->send_request(msg);
     success_or_throw(status, "request error");
 
     std::vector<std::uint8_t> response;
-    response.reserve(handshake.get_size() - 1);
+    response.reserve(m_handshake.get_size() - 1);
 
     status = client->get_response(response);
     success_or_throw(status, "response error");
