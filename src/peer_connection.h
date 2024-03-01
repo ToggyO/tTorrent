@@ -23,6 +23,8 @@ public:
     PeerConnection& operator=(const PeerConnection& other) = delete;
     PeerConnection& operator=(PeerConnection&& other) noexcept;
 
+    void start();
+
     void read_message()
     {
         auto client = m_client_ptr.lock();
@@ -142,6 +144,11 @@ public:
 private:
     std::string make_handshake(const std::shared_ptr<ITcpClient>& client);
 
+    bool establish_connection();
+
+    void connect();
+
+    bool receive_bitfield();
 
     void set_peer_id(std::string&& peer_id) { m_peer_id = std::move(peer_id); }
 

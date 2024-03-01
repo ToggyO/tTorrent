@@ -3,7 +3,29 @@
 PeerConnection::PeerConnection(const std::shared_ptr<ITcpClient>& client_ptr, PeerHandshake&& handshake)
     : m_client_ptr{client_ptr},
       m_handshake(std::move(handshake)),
-      m_choked{false}
+      m_choked{false},
+      m_bitfield{0}
+{
+
+}
+
+bool PeerConnection::establish_connection()
+{
+    try
+    {
+        connect();
+        receive_bitfield();
+        send_interested(); // TODO: check
+        return true;
+    }
+    catch (std::exception &e)
+    {
+        // TODO: handle
+        return false;
+    }
+}
+
+void PeerConnection::connect()
 {
     auto client = m_client_ptr.lock();
     if (!client)
@@ -21,6 +43,12 @@ PeerConnection::PeerConnection(const std::shared_ptr<ITcpClient>& client_ptr, Pe
     }
 
     set_peer_id(PeerHandshake::extract_peer_id(handshake_result));
+}
+
+bool PeerConnection::receive_bitfield()
+{
+    read_message();
+    if
 }
 
 void PeerConnection::send_interested() const
@@ -72,6 +100,8 @@ void PeerConnection::success_or_throw(const ssize_t& status, std::string&& messa
     }
 }
 
+// TODO: мбыть сделать класс Response, где внутри парсить ответ
+// Таким образом вынесем знание об обработки сообщений из класса, характеризующего соединение с пиром
 std::pair<MessageId, Payload> PeerConnection::parse_message(const std::vector<uint8_t>& bytes)
 {
     if (bytes.size() < 5)
@@ -84,5 +114,5 @@ std::pair<MessageId, Payload> PeerConnection::parse_message(const std::vector<ui
     auto begin = bytes.begin();
     std::vector<uint8_t> payload(begin + 5, begin + 5 + (length - 1));
 
-    return std::make_pair(MessageId(bytes[4]), std::move(payload))
+    return std::make_pair(MessageId(bytes[4]), std::move(payload));
 }
