@@ -71,3 +71,18 @@ void PeerConnection::success_or_throw(const ssize_t& status, std::string&& messa
         throw std::runtime_error("PeerConnection: " + message + ". Status: " + std::to_string(status));
     }
 }
+
+std::pair<MessageId, Payload> PeerConnection::parse_message(const std::vector<uint8_t>& bytes)
+{
+    if (bytes.size() < 5)
+    {
+        throw std::runtime_error("Error parsing message: total size less than 5");
+    }
+
+    auto length = ((uint32_t)bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+
+    auto begin = bytes.begin();
+    std::vector<uint8_t> payload(begin + 5, begin + 5 + (length - 1));
+
+    return std::make_pair(MessageId(bytes[4]), std::move(payload))
+}

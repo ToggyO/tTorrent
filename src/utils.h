@@ -7,6 +7,7 @@
 
 #include "../lib/sha1/sha1.hpp" // TODO: remove ..
 
+// TODO: separate to cpp files
 inline int read_torrent_file_content(const std::string& path, std::string& content)
 {
     std::ifstream file(path, std::ios::binary);
@@ -121,3 +122,39 @@ inline std::pair<std::string, size_t> split_inet_address(const std::string_view 
     }
     return {host, port};
 }
+
+template <typename Integer>
+Integer bytes_to_integer(const uint8_t* bytes, bool little_endian = true)
+{
+    Integer result = 0;
+    if (little_endian)
+    {
+        for (size_t i = sizeof(result); i > 0; --i)
+        {
+            result = (result << 8) | bytes[i];
+        }
+    }
+    else
+    {
+        for (size_t i = 0; i < sizeof(result); ++i)
+        {
+            result = (result << 8) | bytes[i];
+        }
+    }
+
+    return result;
+}
+
+// TODO: remove
+//template <typename IntegerType>
+//IntegerType bitsToInt( IntegerType& result, const unsigned char* bits, bool little_endian = true )
+//{
+//    result = 0;
+//    if (little_endian)
+//        for (int n = sizeof( result ); n >= 0; n--)
+//            result = (result << 8) +bits[ n ];
+//    else
+//        for (unsigned n = 0; n < sizeof( result ); n++)
+//            result = (result << 8) +bits[ n ];
+//    return result;
+//}

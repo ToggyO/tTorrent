@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <vector>
 
+using Payload = std::vector<uint8_t>;
+
 // TODO: add descr
 enum class MessageId : uint8_t
 {
@@ -125,31 +127,31 @@ struct RequestMessage : public Message
 
 } __attribute__((packed));
 
-
-template <class TMessage, typename = std::enable_if_t<std::is_base_of_v<Message, TMessage>>>
-inline deserialize_message(const std::vector<uint8_t>& bytes)
-{
-
-    auto length = ((uint32_t)bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
-    auto id = MessageId(bytes[4]);
-
-    switch (id)
-    {
-        case MessageId::choke:
-            m_choked = true;
-            break;
-        case MessageId::unchoke:
-            m_choked = false;
-            break;
-        case MessageId::bitfield:
-//                m_bitfield = std::move((*static_cast<BitfieldMessage*>(&msg)).payload);
-            break;
-        case MessageId::have:
-            // TODO:
-            break;
-        default:
-            // TODO:
-            break;
-    }
-
-}
+// TODO: remove
+//template <class TMessage, typename = std::enable_if_t<std::is_base_of_v<Message, TMessage>>>
+//inline deserialize_message(const std::vector<uint8_t>& bytes)
+//{
+//
+//    auto length = ((uint32_t)bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+//    auto id = MessageId(bytes[4]);
+//
+//    switch (id)
+//    {
+//        case MessageId::choke:
+//            m_choked = true;
+//            break;
+//        case MessageId::unchoke:
+//            m_choked = false;
+//            break;
+//        case MessageId::bitfield:
+//               m_bitfield = std::move((*static_cast<BitfieldMessage*>(&msg)).payload);
+//            break;
+//        case MessageId::have:
+//            // TODO:
+//            break;
+//        default:
+//            // TODO:
+//            break;
+//    }
+//
+//}
